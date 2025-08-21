@@ -101,6 +101,18 @@ Create comprehensive documentation covering:
 6. **SECURITY_GUIDE.md** - Security architecture and compliance
 7. **TROUBLESHOOTING.md** - Common issues and solutions
 8. **ARCHITECTURE_DOCUMENTATION.md** - Technical architecture details
+9. **architecture_diagrams.html** - Interactive architecture diagrams with Mermaid.js
+
+**Architecture Diagrams Requirements:**
+- System Architecture Overview with AWS service icons
+- Sequence Diagram showing receipt processing flow
+- AWS Services Architecture with service layers
+- Cost Breakdown with pie chart and detailed table
+- Technology Stack with 8 technology categories
+- Scalability & Performance with growth path visualization
+- Use Mermaid.js for professional diagram rendering
+- Include interactive elements and responsive design
+- Professional styling with gradient background and clean layout
 
 ## Deployment Scripts
 
@@ -109,6 +121,7 @@ Create comprehensive documentation covering:
 - `deploy-lambdas.py` - Deploy Lambda functions with API Gateway configuration
 - `generate_static_html.py` - Generate and deploy frontend files
 - `test_deployment.py` - Comprehensive deployment verification
+- `architecture_diagrams.html` - Interactive architecture visualization
 
 **Key Features:**
 - Handle existing resources gracefully
