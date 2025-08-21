@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Expense Analyzer - Architecture Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #4facfe;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        .diagram-container {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e6ff;
+        }
+        .mermaid {
+            text-align: center;
+        }
+        .description {
+            background: #e8f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4facfe;
+        }
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .tech-item {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #d0d8ff;
+        }
+        .tech-item h4 {
+            color: #4facfe;
+            margin: 0 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Smart Expense Analyzer Architecture</h1>
+        
+        <h2>📊 System Architecture Overview</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph TB
+                    User[👤 User] --> Frontend[🌐 Frontend<br/>S3 Static Website]
+                    Frontend --> Dashboard[📊 Category Dashboard<br/>Static HTML]
+                    
+                    Receipt[📄 Receipt Upload] --> S3Upload[📤 S3 Bucket<br/>expense-analyzer-docs]
+                    S3Upload --> Trigger[⚡ S3 Event Trigger]
+                    Trigger --> Processor[🔄 Document Processor<br/>Lambda Function]
+                    
+                    Processor --> Textract[🔍 AWS Textract<br/>OCR Service]
+                    Textract --> Extract[📝 Text Extraction]
+                    Extract --> Categorize[🏷️ AI Categorization]
+                    Categorize --> DynamoDB[(🗄️ DynamoDB<br/>ExpenseRecords)]
+                    
+                    DynamoDB --> Generator[🏗️ Static HTML Generator<br/>Python Script]
+                    Generator --> Frontend
+                    
+                    style User fill:#e1f5fe
+                    style Frontend fill:#f3e5f5
+                    style S3Upload fill:#fff3e0
+                    style Processor fill:#e8f5e8
+                    style Textract fill:#fff8e1
+                    style DynamoDB fill:#fce4ec
+                    style Dashboard fill:#f1f8e9
+            </div>
+        </div>
+        
+        <div class="description">
+            <strong>Architecture Flow:</strong> Users upload receipts to S3, which triggers Lambda processing with Textract OCR. Extracted data is categorized and stored in DynamoDB. A static HTML dashboard is generated showing category-wise expense summaries.
+        </div>
+
+        <h2>🔄 Sequence Diagram - Receipt Processing Flow</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                sequenceDiagram
+                    participant U as 👤 User
+                    participant S3 as 📤 S3 Bucket
+                    participant L as ⚡ Lambda Processor
+                    participant T as 🔍 Textract
+                    participant DB as 🗄️ DynamoDB
+                    participant G as 🏗️ HTML Generator
+                    participant D as 📊 Dashboard
+                    
+                    U->>S3: 1. Upload Receipt (PNG/JPG/PDF)
+                    S3->>L: 2. Trigger Lambda Function
+                    L->>T: 3. Send Document for OCR
+                    T->>L: 4. Return Extracted Text
+                    L->>L: 5. Parse & Categorize Expense
+                    L->>DB: 6. Store Expense Record
+                    
+                    Note over G: Periodic/Manual Generation
+                    G->>DB: 7. Query All Expenses
+                    DB->>G: 8. Return Expense Data
+                    G->>G: 9. Group by Category
+                    G->>D: 10. Generate Static HTML
+                    
+                    U->>D: 11. View Dashboard
+                    D->>U: 12. Display Category Summary
+            </div>
+        </div>
+        
+        <div class="description">
+            <strong>Processing Flow:</strong> Receipt upload triggers automatic OCR processing, data extraction, categorization, and storage. Dashboard generation creates a static HTML view of categorized expenses.
+        </div>
+
+        <h2>🏗️ AWS Services Architecture</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph TD
+                    subgraph Frontend["Frontend Layer"]
+                        S3F[S3 Static Website]
+                        CF[CloudFront CDN]
+                    end
+                    
+                    subgraph Storage["Storage Layer"]
+                        S3D[S3 Document Bucket]
+                        DDB[(DynamoDB Table)]
+                    end
+                    
+                    subgraph Compute["Compute Layer"]
+                        L1[Upload API Lambda]
+                        L2[Document Processor Lambda]
+                        L3[Get Expenses API Lambda]
+                    end
+                    
+                    subgraph AI["AI/ML Services"]
+                        TX[AWS Textract]
+                        CAT[Categorization Logic]
+                    end
+                    
+                    S3F --> L1
+                    S3F --> L3
+                    L1 --> S3D
+                    S3D --> L2
+                    L2 --> TX
+                    L2 --> CAT
+                    L2 --> DDB
+                    L3 --> DDB
+                    
+                    style S3F fill:#fff3e0
+                    style S3D fill:#fff3e0
+                    style DDB fill:#fce4ec
+                    style L1 fill:#e8f5e8
+                    style L2 fill:#e8f5e8
+                    style L3 fill:#e8f5e8
+                    style TX fill:#fff8e1
+                    style CAT fill:#f3e5f5
+            </div>
+        </div>
+
+        <h2>💰 Cost Breakdown</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                pie title Monthly Cost Distribution (Estimated)
+                    "Textract OCR" : 60
+                    "Lambda Execution" : 20
+                    "DynamoDB Storage" : 10
+                    "S3 Storage & Requests" : 8
+                    "Data Transfer" : 2
+            </div>
+        </div>
+
+        <h2>🛠️ Technology Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">
+                <h4>🌐 Frontend</h4>
+                <p>HTML5, CSS3, JavaScript<br/>Static S3 Website</p>
+            </div>
+            <div class="tech-item">
+                <h4>⚡ Backend</h4>
+                <p>AWS Lambda (Python 3.9)<br/>Serverless Functions</p>
+            </div>
+            <div class="tech-item">
+                <h4>🗄️ Database</h4>
+                <p>DynamoDB<br/>NoSQL Document Store</p>
+            </div>
+            <div class="tech-item">
+                <h4>📤 Storage</h4>
+                <p>Amazon S3<br/>Object Storage</p>
+            </div>
+            <div class="tech-item">
+                <h4>🔍 OCR</h4>
+                <p>AWS Textract<br/>Document Analysis</p>
+            </div>
+            <div class="tech-item">
+                <h4>🔐 Security</h4>
+                <p>IAM Roles & Policies<br/>Function URLs</p>
+            </div>
+        </div>
+
+        <h2>📈 Scalability & Performance</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph TD
+                    A[Low Traffic<br/>1-10 receipts/day] --> B[Current Architecture<br/>On-demand Lambda]
+                    B --> C[Medium Traffic<br/>100-1000 receipts/day]
+                    C --> D[Add API Gateway<br/>Rate Limiting & Caching]
+                    D --> E[High Traffic<br/>10,000+ receipts/day]
+                    E --> F[Provisioned Concurrency<br/>SQS Queue Processing]
+                    F --> G[Enterprise Scale<br/>Multi-region Deployment]
+                    
+                    style A fill:#e8f5e8
+                    style B fill:#fff3e0
+                    style C fill:#fff8e1
+                    style D fill:#f3e5f5
+                    style E fill:#fce4ec
+                    style F fill:#f1f8e9
+                    style G fill:#e1f5fe
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>Current Implementation:</strong> Optimized for low-to-medium traffic with on-demand scaling. Can handle 1000+ receipts per day without modifications. For higher loads, consider adding API Gateway, SQS queues, and provisioned concurrency.
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            },
+            sequence: {
+                useMaxWidth: true,
+                wrap: true
+            }
+        });
+    </script>
+</body>
+</html>
